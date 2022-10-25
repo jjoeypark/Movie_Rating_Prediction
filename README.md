@@ -1,7 +1,7 @@
 # Movie_Rating_Prediction
 Predict the star rating associated with user reviews from Amazon Movie Reviews using the available features.
 
-## NUMERIC DATA
+## Numeric Data
 ### 1.	Feature: "Helpfulness."
 
 I assigned -1 to review with low helpfulness(O<val<0.35), O to medium helpfulness(3.5<= val< 0.75) and 1 to high helpfulness(0.75<=val<1). It is useful to understand whether the review was helpful or not.
