@@ -1,0 +1,1254 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "train = pd.read_csv(\"./data/X_train.csv\")\n",
+    "test = pd.read_csv(\"./data/X_test.csv\")\n",
+    "\n",
+    "newtrain= train[['Text', 'Score']]\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "5.0    746520\n",
+       "4.0    315587\n",
+       "3.0    165727\n",
+       "1.0     85615\n",
+       "2.0     84084\n",
+       "Name: Score, dtype: int64"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "newtrain.Score.value_counts()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Text</th>\n",
+       "      <th>Score</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>207</th>\n",
+       "      <td>This is so lame! The songs are terrible! The v...</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>209</th>\n",
+       "      <td>This is with out a doubt is one of the worst C...</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>210</th>\n",
+       "      <td>Narration is OK but the story is weak and the ...</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>237</th>\n",
+       "      <td>If you love the Rankin-Bass version of this cl...</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>336</th>\n",
+       "      <td>What's all this complaining about Destiny's Ch...</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41718</th>\n",
+       "      <td>I have always loved this movie, but the DVD ho...</td>\n",
+       "      <td>5.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41719</th>\n",
+       "      <td>This B/W film is simply one of the best movies...</td>\n",
+       "      <td>5.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41720</th>\n",
+       "      <td>Of course, Gregory Peck will not disappoint yo...</td>\n",
+       "      <td>5.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41722</th>\n",
+       "      <td>I have always enjoyed this movie, I now own th...</td>\n",
+       "      <td>5.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>41723</th>\n",
+       "      <td>What can really be written about this wonderfu...</td>\n",
+       "      <td>5.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>125000 rows × 2 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                                    Text  Score\n",
+       "207    This is so lame! The songs are terrible! The v...    1.0\n",
+       "209    This is with out a doubt is one of the worst C...    1.0\n",
+       "210    Narration is OK but the story is weak and the ...    1.0\n",
+       "237    If you love the Rankin-Bass version of this cl...    1.0\n",
+       "336    What's all this complaining about Destiny's Ch...    1.0\n",
+       "...                                                  ...    ...\n",
+       "41718  I have always loved this movie, but the DVD ho...    5.0\n",
+       "41719  This B/W film is simply one of the best movies...    5.0\n",
+       "41720  Of course, Gregory Peck will not disappoint yo...    5.0\n",
+       "41722  I have always enjoyed this movie, I now own th...    5.0\n",
+       "41723  What can really be written about this wonderfu...    5.0\n",
+       "\n",
+       "[125000 rows x 2 columns]"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "movieNums= newtrain['ProductId'].value_counts()\n",
+    "movieNums= movieNums.loc[movieNums.values > 150]\n",
+    "movieNums = movieNums.keys().tolist()\n",
+    "reducedTrain = train[train['ProductId'].isin(movieNums)]\n",
+    "\n",
+    "userNums= reducedTrain['UserId'].value_counts()\n",
+    "userNums= userNums.loc[userNums.values > 5]\n",
+    "userNums = userNums.keys().tolist()\n",
+    "txtTrain = reducedTrain[reducedTrain['UserId'].isin(userNums)]\n",
+    "txtTrain"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'lame song terribl villan ripoff mr burn simpson kid look like loan charli brown show biggest lowpoint polit correct rant bad cbs insist run back back classic'"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from nltk.tokenize import word_tokenize\n",
+    "from nltk.corpus import stopwords\n",
+    "from nltk.stem.snowball import SnowballStemmer\n",
+    "import nltk.data\n",
+    "import string\n",
+    "import nltk\n",
+    "import re\n",
+    "\n",
+    "def review_to_words (review):\n",
+    "    rev = re.sub('[^a-zA-Z]', ' ', review)\n",
+    "    words = rev.lower().split()\n",
+    "    stops = set(stopwords.words('english'))\n",
+    "    words = [w for w in words if not w in stops]\n",
+    "    stemmer = SnowballStemmer('english')\n",
+    "    words = [stemmer.stem(w) for w in words]\n",
+    "    return (' '.join(words))\n",
+    "\n",
+    "review_to_words(txtTrain['Text'].iloc[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "clean_train = []\n",
+    "for i in range(0, len(txtTrain)):\n",
+    "    if (i+1)%1000 == 0:\n",
+    "        print('Review {} of {}'.format(i+1, len(txtTrain)))\n",
+    "    clean_train.append(review_to_words(txtTrain['Text'].iloc[i]))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.feature_extraction.text import CountVectorizer\n",
+    "\n",
+    "vectorizer = CountVectorizer(analyzer= \"word\",\n",
+    "                                    tokenizer= None,\n",
+    "                                    preprocessor = None,\n",
+    "                                    max_df = 0.6,\n",
+    "                                    ngram_range=(1,3),\n",
+    "                                    stop_words = None,\n",
+    "                                    max_features = 15000)\n",
+    "\n",
+    "train_data_features = vectorizer.fit_transform(clean_train)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "(125000, 15000)\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(train_data_features.shape)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "vocab = vectorizer.get_feature_names()\n",
+    "vocab[:10]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>aaron</th>\n",
+       "      <th>ab</th>\n",
+       "      <th>abandon</th>\n",
+       "      <th>abbey</th>\n",
+       "      <th>abbi</th>\n",
+       "      <th>abbott</th>\n",
+       "      <th>abc</th>\n",
+       "      <th>abduct</th>\n",
+       "      <th>abil</th>\n",
+       "      <th>abl</th>\n",
+       "      <th>...</th>\n",
+       "      <th>zero star</th>\n",
+       "      <th>zeta</th>\n",
+       "      <th>zeta jone</th>\n",
+       "      <th>zhang</th>\n",
+       "      <th>zip</th>\n",
+       "      <th>zombi</th>\n",
+       "      <th>zombi movi</th>\n",
+       "      <th>zone</th>\n",
+       "      <th>zoom</th>\n",
+       "      <th>zorro</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>172</td>\n",
+       "      <td>116</td>\n",
+       "      <td>999</td>\n",
+       "      <td>179</td>\n",
+       "      <td>162</td>\n",
+       "      <td>159</td>\n",
+       "      <td>151</td>\n",
+       "      <td>197</td>\n",
+       "      <td>2290</td>\n",
+       "      <td>4919</td>\n",
+       "      <td>...</td>\n",
+       "      <td>205</td>\n",
+       "      <td>274</td>\n",
+       "      <td>260</td>\n",
+       "      <td>114</td>\n",
+       "      <td>117</td>\n",
+       "      <td>2014</td>\n",
+       "      <td>193</td>\n",
+       "      <td>546</td>\n",
+       "      <td>293</td>\n",
+       "      <td>452</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>1 rows × 15000 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   aaron   ab  abandon  abbey  abbi  abbott  abc  abduct  abil   abl  ...  \\\n",
+       "0    172  116      999    179   162     159  151     197  2290  4919  ...   \n",
+       "\n",
+       "   zero star  zeta  zeta jone  zhang  zip  zombi  zombi movi  zone  zoom  \\\n",
+       "0        205   274        260    114  117   2014         193   546   293   \n",
+       "\n",
+       "   zorro  \n",
+       "0    452  \n",
+       "\n",
+       "[1 rows x 15000 columns]"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "dist = np.sum(train_data_features, axis = 0)\n",
+    "pd.DataFrame(dist, columns = vocab)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Text</th>\n",
+       "      <th>Score</th>\n",
+       "      <th>Sentiment</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>207</th>\n",
+       "      <td>This is so lame! The songs are terrible! The v...</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>-1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>209</th>\n",
+       "      <td>This is with out a doubt is one of the worst C...</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>-1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>210</th>\n",
+       "      <td>Narration is OK but the story is weak and the ...</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>-1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>237</th>\n",
+       "      <td>If you love the Rankin-Bass version of this cl...</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>-1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>336</th>\n",
+       "      <td>What's all this complaining about Destiny's Ch...</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>-1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                                  Text  Score Sentiment\n",
+       "207  This is so lame! The songs are terrible! The v...    1.0        -1\n",
+       "209  This is with out a doubt is one of the worst C...    1.0        -1\n",
+       "210  Narration is OK but the story is weak and the ...    1.0        -1\n",
+       "237  If you love the Rankin-Bass version of this cl...    1.0        -1\n",
+       "336  What's all this complaining about Destiny's Ch...    1.0        -1"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def score_preprocessing(value):\n",
+    "    if value <= 2:\n",
+    "        return '-1'\n",
+    "    elif value == 3:\n",
+    "        return '0'\n",
+    "    else: \n",
+    "        return '1'\n",
+    "\n",
+    "txtTrain['Sentiment'] = txtTrain['Score'].apply(score_preprocessing) \n",
+    "txtTrain.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.ensemble import RandomForestClassifier\n",
+    "\n",
+    "forest = RandomForestClassifier(\n",
+    "    n_estimators = 100, n_jobs = -1, random_state = 13)\n",
+    "\n",
+    "forest = forest.fit(train_data_features, txtTrain['Sentiment'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Review 5000 of 300000\n",
+      "Review 10000 of 300000\n",
+      "Review 15000 of 300000\n",
+      "Review 20000 of 300000\n",
+      "Review 25000 of 300000\n",
+      "Review 30000 of 300000\n",
+      "Review 35000 of 300000\n",
+      "Review 40000 of 300000\n",
+      "Review 45000 of 300000\n",
+      "Review 50000 of 300000\n",
+      "Review 55000 of 300000\n",
+      "Review 60000 of 300000\n",
+      "Review 65000 of 300000\n",
+      "Review 70000 of 300000\n",
+      "Review 75000 of 300000\n",
+      "Review 80000 of 300000\n",
+      "Review 85000 of 300000\n",
+      "Review 90000 of 300000\n",
+      "Review 95000 of 300000\n",
+      "Review 100000 of 300000\n",
+      "Review 105000 of 300000\n",
+      "Review 110000 of 300000\n",
+      "Review 115000 of 300000\n",
+      "Review 120000 of 300000\n",
+      "Review 125000 of 300000\n",
+      "Review 130000 of 300000\n",
+      "Review 135000 of 300000\n",
+      "Review 140000 of 300000\n",
+      "Review 145000 of 300000\n",
+      "Review 150000 of 300000\n",
+      "Review 155000 of 300000\n",
+      "Review 160000 of 300000\n",
+      "Review 165000 of 300000\n",
+      "Review 170000 of 300000\n",
+      "Review 175000 of 300000\n",
+      "Review 180000 of 300000\n",
+      "Review 185000 of 300000\n",
+      "Review 190000 of 300000\n",
+      "Review 195000 of 300000\n",
+      "Review 200000 of 300000\n",
+      "Review 205000 of 300000\n",
+      "Review 210000 of 300000\n",
+      "Review 215000 of 300000\n",
+      "Review 220000 of 300000\n",
+      "Review 225000 of 300000\n",
+      "Review 230000 of 300000\n",
+      "Review 235000 of 300000\n",
+      "Review 240000 of 300000\n",
+      "Review 245000 of 300000\n",
+      "Review 250000 of 300000\n",
+      "Review 255000 of 300000\n",
+      "Review 260000 of 300000\n",
+      "Review 265000 of 300000\n",
+      "Review 270000 of 300000\n",
+      "Review 275000 of 300000\n",
+      "Review 280000 of 300000\n",
+      "Review 285000 of 300000\n",
+      "Review 290000 of 300000\n",
+      "Review 295000 of 300000\n",
+      "Review 300000 of 300000\n"
+     ]
+    }
+   ],
+   "source": [
+    "clean_test = []\n",
+    "for i in range(0, len(test)):\n",
+    "    if (i+1)%5000 == 0:\n",
+    "        print('Review {} of {}'.format(i+1, len(test)))\n",
+    "    clean_test.append(review_to_words(test['Text'].iloc[i]))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "clean_1 = clean_test[:30000]\n",
+    "clean_2 = clean_test[30000:60000]\n",
+    "clean_3 = clean_test[60000:90000]\n",
+    "clean_4 = clean_test[90000:120000]\n",
+    "clean_5 = clean_test[120000:150000]\n",
+    "clean_6 = clean_test[150000:180000]\n",
+    "clean_7 = clean_test[180000:210000]\n",
+    "clean_8 = clean_test[210000:240000]\n",
+    "clean_9 = clean_test[240000:270000]\n",
+    "clean_10 = clean_test[270000:]\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# test_data_features1 = vectorizer.transform(clean_1)\n",
+    "# test_data_features1 = test_data_features1.toarray()\n",
+    "\n",
+    "# result1 = forest.predict(test_data_features1)\n",
+    "\n",
+    "# output = pd.DataFrame(data = {\"Id\": test['Id'][:30000], \"Sentiment\": result1})\n",
+    "# output.to_csv(\"newresult1.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# test_data_features2 = vectorizer.transform(clean_2)\n",
+    "# test_data_features2 = test_data_features2.toarray()\n",
+    "\n",
+    "# result2 = forest.predict(test_data_features2)\n",
+    "\n",
+    "# output = pd.DataFrame(data = {\"Id\": test['Id'][30000:60000], \"Sentiment\": result2})\n",
+    "# output.to_csv(\"newresult2.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# test_data_features3 = vectorizer.transform(clean_3)\n",
+    "# test_data_features3 = test_data_features3.toarray()\n",
+    "\n",
+    "# result3 = forest.predict(test_data_features3)\n",
+    "\n",
+    "# output = pd.DataFrame(data = {\"Id\": test['Id'][60000:90000], \"Sentiment\": result3})\n",
+    "# output.to_csv(\"newresult3.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# test_data_features4 = vectorizer.transform(clean_4)\n",
+    "# test_data_features4 = test_data_features4.toarray()\n",
+    "\n",
+    "# result4 = forest.predict(test_data_features4)\n",
+    "\n",
+    "# output = pd.DataFrame(data = {\"Id\": test['Id'][90000:120000], \"Sentiment\": result4})\n",
+    "# output.to_csv(\"newresult4.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# test_data_features5 = vectorizer.transform(clean_5)\n",
+    "# test_data_features5 = test_data_features5.toarray()\n",
+    "\n",
+    "# result5 = forest.predict(test_data_features5)\n",
+    "\n",
+    "# output = pd.DataFrame(data = {\"Id\": test['Id'][120000:150000], \"Sentiment\": result5})\n",
+    "# output.to_csv(\"newresult5.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# test_data_features6 = vectorizer.transform(clean_6)\n",
+    "# test_data_features6 = test_data_features6.toarray()\n",
+    "\n",
+    "# result6 = forest.predict(test_data_features6)\n",
+    "\n",
+    "# output = pd.DataFrame(data = {\"Id\": test['Id'][150000:180000], \"Sentiment\": result6})\n",
+    "# output.to_csv(\"newresult6.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# test_data_features7 = vectorizer.transform(clean_7)\n",
+    "# test_data_features7 = test_data_features7.toarray()\n",
+    "\n",
+    "# result7 = forest.predict(test_data_features7)\n",
+    "\n",
+    "# output = pd.DataFrame(data = {\"Id\": test['Id'][180000:210000], \"Sentiment\": result7})\n",
+    "# output.to_csv(\"newresult7.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# test_data_features8 = vectorizer.transform(clean_8)\n",
+    "# test_data_features8 = test_data_features8.toarray()\n",
+    "\n",
+    "\n",
+    "# result8 = forest.predict(test_data_features8)\n",
+    "\n",
+    "# output = pd.DataFrame(data = {\"Id\": test['Id'][210000:240000], \"Sentiment\": result8})\n",
+    "# output.to_csv(\"newresult8.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Id</th>\n",
+       "      <th>ProductId</th>\n",
+       "      <th>UserId</th>\n",
+       "      <th>Score</th>\n",
+       "      <th>Summary</th>\n",
+       "      <th>Text</th>\n",
+       "      <th>Helpfulness</th>\n",
+       "      <th>user_mean_score</th>\n",
+       "      <th>product_mean_score</th>\n",
+       "      <th>YYYYMM</th>\n",
+       "      <th>user_num_reviews</th>\n",
+       "      <th>reliableUser</th>\n",
+       "      <th>maxHelpNum</th>\n",
+       "      <th>Sentiment</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>351356</th>\n",
+       "      <td>426993</td>\n",
+       "      <td>6304504012</td>\n",
+       "      <td>A3N2XVTC8OFKVX</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>I love Evita and wish they had made a movie of it</td>\n",
+       "      <td>Madonna was excellent.  Even Antonio Bandaras ...</td>\n",
+       "      <td>0.750000</td>\n",
+       "      <td>2.333333</td>\n",
+       "      <td>4.220588</td>\n",
+       "      <td>200110</td>\n",
+       "      <td>6</td>\n",
+       "      <td>True</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1193553</th>\n",
+       "      <td>1450300</td>\n",
+       "      <td>B0059XTU3G</td>\n",
+       "      <td>A33F3L2E0POEC4</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>Great Entertainment</td>\n",
+       "      <td>Loved the movie in every way and cannot wait f...</td>\n",
+       "      <td>0.500000</td>\n",
+       "      <td>4.500000</td>\n",
+       "      <td>4.152616</td>\n",
+       "      <td>201406</td>\n",
+       "      <td>6</td>\n",
+       "      <td>False</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>519251</th>\n",
+       "      <td>630873</td>\n",
+       "      <td>B00005JNHT</td>\n",
+       "      <td>ACT1EPHFS9E7V</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>true crime</td>\n",
+       "      <td>If you like true crime movies &amp; books this is ...</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>4.290076</td>\n",
+       "      <td>4.384615</td>\n",
+       "      <td>201312</td>\n",
+       "      <td>158</td>\n",
+       "      <td>False</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1322241</th>\n",
+       "      <td>1606266</td>\n",
+       "      <td>B00A7E8PA6</td>\n",
+       "      <td>A2VZIH75IMKB5L</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>overrated movie featuring a washed up disney a...</td>\n",
+       "      <td>like i said in my last review i only liked mil...</td>\n",
+       "      <td>0.500000</td>\n",
+       "      <td>2.079365</td>\n",
+       "      <td>3.281250</td>\n",
+       "      <td>201304</td>\n",
+       "      <td>79</td>\n",
+       "      <td>False</td>\n",
+       "      <td>3.0</td>\n",
+       "      <td>-1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1210749</th>\n",
+       "      <td>1471136</td>\n",
+       "      <td>B005LAIHPE</td>\n",
+       "      <td>A22TRI3C3OI8QV</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>Great Popcorn Movie!</td>\n",
+       "      <td>When I first rented this movie I expected to s...</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>4.342857</td>\n",
+       "      <td>3.819512</td>\n",
+       "      <td>201211</td>\n",
+       "      <td>38</td>\n",
+       "      <td>False</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>963073</th>\n",
+       "      <td>1170293</td>\n",
+       "      <td>B001B3LIOC</td>\n",
+       "      <td>A2ZXYCWPNS6KX4</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>great movies</td>\n",
+       "      <td>Two of my favorite Steven Seagal movies. Two g...</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>4.944444</td>\n",
+       "      <td>4.310345</td>\n",
+       "      <td>201403</td>\n",
+       "      <td>22</td>\n",
+       "      <td>False</td>\n",
+       "      <td>4.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>383334</th>\n",
+       "      <td>465776</td>\n",
+       "      <td>6305470448</td>\n",
+       "      <td>A2PYVF3IFIHIYI</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>Forbibben Love</td>\n",
+       "      <td>Beautiful film about forbidden love wonderfull...</td>\n",
+       "      <td>0.666667</td>\n",
+       "      <td>3.363636</td>\n",
+       "      <td>4.368182</td>\n",
+       "      <td>200012</td>\n",
+       "      <td>12</td>\n",
+       "      <td>True</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>443622</th>\n",
+       "      <td>538947</td>\n",
+       "      <td>B00003CXXF</td>\n",
+       "      <td>A152C8GYY25HAH</td>\n",
+       "      <td>2.0</td>\n",
+       "      <td>Gorgeous Greek island plays host to turgid movie</td>\n",
+       "      <td>I have read that the film version of Captain C...</td>\n",
+       "      <td>0.750000</td>\n",
+       "      <td>3.485944</td>\n",
+       "      <td>3.555556</td>\n",
+       "      <td>200203</td>\n",
+       "      <td>612</td>\n",
+       "      <td>True</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>-1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>696523</th>\n",
+       "      <td>846480</td>\n",
+       "      <td>B0002VETFO</td>\n",
+       "      <td>A32ZOSZVX052IJ</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>cool!</td>\n",
+       "      <td>Love this sitcom it is funny as crap! I would ...</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>4.966942</td>\n",
+       "      <td>4.603774</td>\n",
+       "      <td>201306</td>\n",
+       "      <td>151</td>\n",
+       "      <td>False</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1323641</th>\n",
+       "      <td>1607985</td>\n",
+       "      <td>B00AEK9BKQ</td>\n",
+       "      <td>AA34MEY4QT9OC</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>Loved!! this movie.</td>\n",
+       "      <td>This was a sensitive and moving piece about a ...</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>4.571429</td>\n",
+       "      <td>4.397436</td>\n",
+       "      <td>201304</td>\n",
+       "      <td>8</td>\n",
+       "      <td>False</td>\n",
+       "      <td>5.0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>10000 rows × 14 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "              Id   ProductId          UserId  Score  \\\n",
+       "351356    426993  6304504012  A3N2XVTC8OFKVX    3.0   \n",
+       "1193553  1450300  B0059XTU3G  A33F3L2E0POEC4    5.0   \n",
+       "519251    630873  B00005JNHT   ACT1EPHFS9E7V    4.0   \n",
+       "1322241  1606266  B00A7E8PA6  A2VZIH75IMKB5L    1.0   \n",
+       "1210749  1471136  B005LAIHPE  A22TRI3C3OI8QV    5.0   \n",
+       "...          ...         ...             ...    ...   \n",
+       "963073   1170293  B001B3LIOC  A2ZXYCWPNS6KX4    5.0   \n",
+       "383334    465776  6305470448  A2PYVF3IFIHIYI    5.0   \n",
+       "443622    538947  B00003CXXF  A152C8GYY25HAH    2.0   \n",
+       "696523    846480  B0002VETFO  A32ZOSZVX052IJ    5.0   \n",
+       "1323641  1607985  B00AEK9BKQ   AA34MEY4QT9OC    5.0   \n",
+       "\n",
+       "                                                   Summary  \\\n",
+       "351356   I love Evita and wish they had made a movie of it   \n",
+       "1193553                                Great Entertainment   \n",
+       "519251                                          true crime   \n",
+       "1322241  overrated movie featuring a washed up disney a...   \n",
+       "1210749                               Great Popcorn Movie!   \n",
+       "...                                                    ...   \n",
+       "963073                                        great movies   \n",
+       "383334                                      Forbibben Love   \n",
+       "443622    Gorgeous Greek island plays host to turgid movie   \n",
+       "696523                                               cool!   \n",
+       "1323641                                Loved!! this movie.   \n",
+       "\n",
+       "                                                      Text  Helpfulness  \\\n",
+       "351356   Madonna was excellent.  Even Antonio Bandaras ...     0.750000   \n",
+       "1193553  Loved the movie in every way and cannot wait f...     0.500000   \n",
+       "519251   If you like true crime movies & books this is ...     0.000000   \n",
+       "1322241  like i said in my last review i only liked mil...     0.500000   \n",
+       "1210749  When I first rented this movie I expected to s...     0.000000   \n",
+       "...                                                    ...          ...   \n",
+       "963073   Two of my favorite Steven Seagal movies. Two g...     0.000000   \n",
+       "383334   Beautiful film about forbidden love wonderfull...     0.666667   \n",
+       "443622   I have read that the film version of Captain C...     0.750000   \n",
+       "696523   Love this sitcom it is funny as crap! I would ...     0.000000   \n",
+       "1323641  This was a sensitive and moving piece about a ...     0.000000   \n",
+       "\n",
+       "         user_mean_score  product_mean_score  YYYYMM  user_num_reviews  \\\n",
+       "351356          2.333333            4.220588  200110                 6   \n",
+       "1193553         4.500000            4.152616  201406                 6   \n",
+       "519251          4.290076            4.384615  201312               158   \n",
+       "1322241         2.079365            3.281250  201304                79   \n",
+       "1210749         4.342857            3.819512  201211                38   \n",
+       "...                  ...                 ...     ...               ...   \n",
+       "963073          4.944444            4.310345  201403                22   \n",
+       "383334          3.363636            4.368182  200012                12   \n",
+       "443622          3.485944            3.555556  200203               612   \n",
+       "696523          4.966942            4.603774  201306               151   \n",
+       "1323641         4.571429            4.397436  201304                 8   \n",
+       "\n",
+       "         reliableUser  maxHelpNum  Sentiment  \n",
+       "351356           True         5.0          0  \n",
+       "1193553         False         5.0          1  \n",
+       "519251          False         5.0          1  \n",
+       "1322241         False         3.0         -1  \n",
+       "1210749         False         4.0          1  \n",
+       "...               ...         ...        ...  \n",
+       "963073          False         4.0          1  \n",
+       "383334           True         5.0          1  \n",
+       "443622           True         5.0         -1  \n",
+       "696523          False         5.0          1  \n",
+       "1323641         False         5.0          1  \n",
+       "\n",
+       "[10000 rows x 14 columns]"
+      ]
+     },
+     "execution_count": 26,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sampleTest = train.sample(n=10000)\n",
+    "sampleTest"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Review 5000 of 10000\n",
+      "Review 10000 of 10000\n"
+     ]
+    }
+   ],
+   "source": [
+    "clean_sample = []\n",
+    "for i in range(0, len(sampleTest)):\n",
+    "    if (i+1)%5000 == 0:\n",
+    "        print('Review {} of {}'.format(i+1, len(sampleTest)))\n",
+    "    clean_sample.append(review_to_words(sampleTest['Text'].iloc[i]))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "test_data_features = vectorizer.transform(clean_sample)\n",
+    "test_data_features = test_data_features.toarray()\n",
+    "\n",
+    "result = forest.predict(test_data_features)\n",
+    "result\n",
+    "output = pd.DataFrame(data = {\"Id\": sampleTest['Id'], \"Text\": sampleTest['Text'], \"Original_Sentiment\": sampleTest['Sentiment'], \"Result_Sentiment\": result})\n",
+    "output.to_csv(\"newresult.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(10000,)"
+      ]
+     },
+     "execution_count": 35,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "result.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "output = pd.DataFrame(data = {\"Id\": sampleTest['Id'], \"Result_Sentiment\": result})\n",
+    "output.to_csv(\"newresult.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "test_data_features9 = vectorizer.transform(clean_9)\n",
+    "test_data_features9 = test_data_features9.toarray()\n",
+    "\n",
+    "result9 = forest.predict(test_data_features9)\n",
+    "\n",
+    "output = pd.DataFrame(data = {\"Id\": test['Id'][240000:270000], \"Sentiment\": result9})\n",
+    "output.to_csv(\"newresult9.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(30000, 15000)"
+      ]
+     },
+     "execution_count": 38,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "test_data_features10 = vectorizer.transform(clean_10)\n",
+    "test_data_features10 = test_data_features10.toarray()\n",
+    "\n",
+    "test_data_features10.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array(['1', '1', '1', '1', '1', '1', '1', '1', '1', '1'], dtype=object)"
+      ]
+     },
+     "execution_count": 39,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "result10 = forest.predict(test_data_features10)\n",
+    "result10[:10]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "output = pd.DataFrame(data = {\"Id\": test['Id'][270000:], \"Sentiment\": result10})\n",
+    "output.to_csv(\"newresult10.csv\", index= None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "result1 = pd.read_csv(\"newresult1.csv\")\n",
+    "result2 = pd.read_csv(\"newresult2.csv\")\n",
+    "result3 = pd.read_csv(\"newresult3.csv\")\n",
+    "result4 = pd.read_csv(\"newresult4.csv\")\n",
+    "result5 = pd.read_csv(\"newresult5.csv\")\n",
+    "result6 = pd.read_csv(\"newresult6.csv\")\n",
+    "result7 = pd.read_csv(\"newresult7.csv\")\n",
+    "result8 = pd.read_csv(\"newresult8.csv\")\n",
+    "result9 = pd.read_csv(\"newresult9.csv\")\n",
+    "result10 = pd.read_csv(\"newresult10.csv\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 42,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(30000, 2)"
+      ]
+     },
+     "execution_count": 42,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "result1.shape\n",
+    "result2.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "result = pd.concat([result1, result2])\n",
+    "result = pd.concat([result, result3])\n",
+    "result = pd.concat([result, result4])\n",
+    "result = pd.concat([result, result5])\n",
+    "result = pd.concat([result, result6])\n",
+    "result = pd.concat([result, result7])\n",
+    "result = pd.concat([result, result8])\n",
+    "result = pd.concat([result, result9])\n",
+    "result = pd.concat([result, result10])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(300000, 2)"
+      ]
+     },
+     "execution_count": 45,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "result.to_csv(\"textSentiment2.csv\", index= None)\n",
+    "result.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "interpreter": {
+   "hash": "55f881645833b0ff5773e68d59b2dc9dc9902af6bb910a3164321a63ab13a7eb"
+  },
+  "kernelspec": {
+   "display_name": "Python 3.10.2 64-bit",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.2"
+  },
+  "orig_nbformat": 4
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
